@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Profile</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+  <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  <script src="../../../node_modules/chart.js/dist/Chart.min.js"></script>
+  <script src="../../../node_modules/angular-chart.js/dist/angular-chart.min.js"></script>
+
+
+</head>
+
+<body>
+<!--NAVIGATION MENU-->
+
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <a routerLink="/advisor" class="navbar-brand" href="#"><img src="../../assets/img/logo_white_background.png"  height="40"></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+          aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown"
+           aria-haspopup="true" aria-expanded="false">
+          Τα Προγράμματά Μου
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <button type="button" style="width:100%" class="btn btn-primary"  (click)="createAdvisor()">
+            <i class="fa fa-pencil" aria-hidden="true"></i>
+            <span class="button-title">Νέο Πρόγραμμα </span>
+          </button>
+          <button type="button" class="btn btn-danger pull-right" data-toggle="modal" data-target="#deleteAdvisor">
+            <i class="fa fa-minus-circle" aria-hidden="true"></i>
+            <span class="button-title">Διαγραφή Προγράμματος</span>
+          </button>
+          <hr>
+          <hr>
+          <div *ngFor="let advisor of this.advisors; let i=index">
+            <a *ngIf="advisor.active == true" class="dropdown-item active" routerLink="/advisor">Πρόγραμμα {{i + 1}}</a>
+            <a *ngIf="advisor.active == false" (click)="changeActiveAdvisor(advisor)"
+               class="dropdown-item">Πρόγραμμα {{i + 1}}</a>
+          </div>
+
+        </div>
+      </li>
+      <li class="nav-item nav-link" routerLink="/courses">Προσφερόμενα Μαθήματα</li>
+      <li class="nav-item nav-link" routerLink="/passed">Περασμένα Μαθήματα</li>
+      <li class="nav-item nav-link" routerLink="/settings">Ρυθμίσεις</li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item nav-link active" routerLink="/profile"><span class="fa fa-user-circle"></span> {{this.user.name}} {{this.user.surname}}</li>
+      <li class="nav-item nav-link" routerLink="/" (click)="logout()"><span class="fa fa-sign-out"></span> Αποσύνδεση</li>
+    </ul>
+  </div>
+</nav>
+
+<!--NAVIGATION MENU END-->
+
+
+<!--PROFILE INFORMATIONS-->
+
+
+
+  <table class=" infos" style="margin-top: 60px">
+    <tr>
+      <td>
+        <b>Ονοματεπώνυμο:</b>
+      </td>
+      <td> {{this.user.name}} {{this.user.surname}}
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <b>Αριθμός Μητρώου:</b>
+      </td>
+      <td> {{this.user.regNum}}
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <b>Εξάμηνο φοίτησης:</b>
+      </td>
+      <td>{{this.userSemester}}ο
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <b> Κατεύθυνση:</b>
+      </td>
+
+      <td>
+        {{this.user.direction}}
+      </td>
+
+    </tr>
+    <tr>
+      <td>
+        <b>Πλήθος περασμένων:</b>
+      </td>
+      <td>{{this.passed.length}}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <b>Μέσος όρος:</b>
+      </td>
+      <td>{{this.averagegrade}}
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <b>ECTS:</b>
+      </td>
+      <td>{{this.ects}} / 240
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="min-width: 3em;" [style.width]="(this.ects/240)*100 + '%'">{{this.progress}} %</div>
+        </div>
+      </td>
+    </tr>
+
+
+  </table>
+
+
+
+<!--PROFIlE INFORMATIONS END-->
+
+
+<!--PIE CHART  -->
+
+
+<div>
+
+  <div class="piechart">
+
+    <canvas
+      baseChart
+      [chartType]="'pie'"
+      [datasets]="pieChartData"
+      [labels]="pieChartLabels"
+      [options]="pieChartOptions"
+      [legend]="true"
+      [colors]="pieChartColor">
+    </canvas>
+  </div>
+
+
+</div>
+
+
+<!--PIE CHART END-->
+
+<!--LINECHART-->
+<div class="linechart">
+
+
+  <canvas baseChart width="600" height="600"
+          [datasets]="lineChartData"
+          [labels]="lineChartLabels"
+          [options]="lineChartOptions"
+          [colors]="lineChartColors"
+          [legend]="lineChartLegend"
+          [chartType]="lineChartType">
+  </canvas>
+
+</div>
+
+
+<!--LINECHART END-->
+
+</body>
+
+<!--The Modal-->
+<div class="modal fade" id="deleteAdvisor">
+  <div class="modal-dialog modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon-box">
+          <i class="material-icons">&times;</i>
+        </div>
+        <h4 class="modal-title">Διαγραφή Προγράμματος</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Το τρέχων πρόγραμμα πρόκειται να διαγραφεί. Μετά την διαγραφή δεν είναι δυνατή η ανάκτησή του. </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" data-dismiss="modal">Ακύρωση</button>
+        <button type="button" class="btn btn-danger" (click)="deleteAdvisor()" data-dismiss="modal">Διαγραφή</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</html>

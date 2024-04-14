@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Advisor</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+</head>
+
+<body>
+
+<!--NAVIGATION MENU-->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <a routerLink="/advisor" class="navbar-brand" href="#"><img src="../../assets/img/logo_white_background.png"  height="40"></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+          aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown"
+           aria-haspopup="true" aria-expanded="false">
+          Τα Προγράμματά Μου
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <button type="button" style="width:100%" class="btn btn-primary"  (click)="createAdvisor()">
+            <i class="fa fa-pencil" aria-hidden="true"></i>
+            <span class="button-title">Νέο Πρόγραμμα </span>
+          </button>
+          <button type="button" class="btn btn-danger pull-right" data-toggle="modal" data-target="#deleteAdvisor">
+            <i class="fa fa-minus-circle" aria-hidden="true"></i>
+            <span class="button-title">Διαγραφή Προγράμματος</span>
+          </button>
+          <hr>
+          <hr>
+          <div *ngFor="let advisor of this.advisors; let i=index">
+            <a *ngIf="advisor.active == true" class="dropdown-item active" routerLink="/advisor">Πρόγραμμα {{i + 1}}</a>
+            <a *ngIf="advisor.active == false" (click)="changeActiveAdvisor(advisor)" routerLink="/advisor"
+               class="dropdown-item">Πρόγραμμα {{i + 1}}</a>
+          </div>
+        </div>
+
+      </li>
+      <li class="nav-item nav-link" routerLink="/courses">Προσφερόμενα Μαθήματα</li>
+      <li class="nav-item nav-link" routerLink="/passed">Περασμένα Μαθήματα</li>
+      <li class="nav-item nav-link" routerLink="/settings">Ρυθμίσεις</li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item nav-link" routerLink="/profile"><span
+        class="fa fa-user-circle"></span> {{this.user.name}} {{this.user.surname}}</li>
+      <li class="nav-item nav-link" routerLink="/" (click)="logout()"><span class="fa fa-sign-out"></span> Αποσύνδεση
+      </li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container-fluid" style="margin-top: 55px;">
+  <div class="row content">
+
+    <!--<div class="menu">-->
+    <!--<div class="title">MENU</div>-->
+    <!--<ul class="nav">-->
+    <!--<li><a href="#">Home</a></li>-->
+    <!--<li><a href="#">About</a></li>-->
+    <!--<li><a href="#">Work</a></li>-->
+    <!--<li><a href="#">Resources</a></li>-->
+    <!--<li><a href="#">Contact</a></li>-->
+    <!--</ul>-->
+    <!--</div>-->
+
+
+    <div class="col-md-2 sidenav">
+      <h5>Μαθήματα
+<!--        ({{this.availableCount}} / {{this.courses.length}})-->
+      </h5>
+      <hr>
+
+      <div class="row" style="padding-left: 10px; line-height: 5px;">
+        <div class="col-sm-1">
+          <canvas width="20" height="10"
+                  style="background-color: black">
+          </canvas>
+        </div>
+        <div class="col-sm-6">
+          <p>Διαθέσιμα</p>
+        </div>
+      </div>
+      <div class="row" style="padding-left: 10px; line-height: 5px;">
+        <div class="col-sm-1">
+          <canvas width="20" height="10"
+                  style="background-color: grey">
+          </canvas>
+        </div>
+        <div class="col-sm-6">
+          <p>Μη Διαθέσιμα</p>
+        </div>
+      </div>
+      <div class="row" style="padding-left: 10px; line-height: 5px;">
+        <div class="col-sm-1">
+          <canvas width="20" height="10"
+                  style="background-color: blue">
+          </canvas>
+        </div>
+        <div class="col-sm-6">
+          <p>Δηλωμένα</p>
+        </div>
+      </div>
+      <div class="row" style="padding-left: 10px; line-height: 5px;">
+        <div class="col-sm-1">
+          <canvas width="20" height="10"
+                  style="background-color: green">
+          </canvas>
+        </div>
+        <div class="col-sm-6">
+          <p>Περασμένα</p>
+        </div>
+      </div>
+
+      <div class="col-md-12 semester" *ngFor="let i of [1,2,3,4,5,6,7,8]">
+        <hr>
+        <h5>{{i}}ο Εξάμηνο</h5>
+
+        <div class="row">
+          <div class="list-group">
+            <div *ngFor="let course of this.courses">
+
+              <div *ngIf="course.semester === i">
+
+                <a *ngIf="existDeclared(course)" class="course" style="color: blue">-{{course.name}} </a>
+                <a *ngIf="existPassed(course)" class="course" style="color: green">-{{course.name}}  </a>
+                <a *ngIf="!existDeclared(course) && !existPassed(course) && course.available == false"
+                   class="course" style="color: black">-{{course.name}} </a>
+                <a *ngIf="!existDeclared(course) && !existPassed(course) && course.available == true" class="course"
+                   style="color: grey">-{{course.name}} </a>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="col-md-10">
+      <div class="col-md-12 stats1">
+        <div class="title">ΣΤΑΤΙΣΤΙΚΑ</div>
+        <div class="row">
+          <div class="col-md-3" style="border-right-style: inset; border-right-width: 3px;">
+            <h5><u>Πρόοδος</u></h5>
+            <div class="row">
+              <div class="col-md-12">
+                <a class="stats-title" title="Μέσος Όρος">Μέσος Όρος: </a>
+                <a class="stats-info">{{this.averagegrade}}</a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <a class="stats-title" title="Μέσος Όρος Στόχος">Μέσος Όρος Στόχος : </a>
+                <a class="stats-info">{{this.averagegradegoal}}</a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <a class="stats-title">ECTS: </a>
+                <a class="stats-info">{{this.userEcts}} / 240</a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-12">
+                <a class="stats-title">Συνολικά Μαθήματα: </a>
+                <a class="stats-info">{{userCourses.length}}</a>
+              </div>
+            </div>
+            <div class="row" *ngIf="finished()">
+              <img src="../../assets/img/hat.png" height="50" width="50">
+            </div>
+          </div>
+          <div class="col-md-6" style="border-right-style: inset; border-right-width: 3px;">
+            <h5><u>Λήψη Πτυχίου</u></h5>
+            <div class="row">
+              <div class="col-md-4">
+                <h6 class="stats-title">Υποχρεωτικά: </h6>
+                <a class="stats-info">{{this.mandatories}} / 18
+                  <i *ngIf="this.mandatories >= 18" class="fa fa-check-circle" style="color: #5cb85c"></i></a>
+              </div>
+              <div class="col-md-4">
+                <h6 class="stats-title">Υποχρεωτικά Κατεύθυνσης: </h6>
+                <a class="stats-info">{{this.directionCourses}} / 4
+                  <i *ngIf="this.directionCourses >= 4" class="fa fa-check-circle" style="color: #5cb85c"></i></a>
+              </div>
+              <div class="col-md-4">
+                <h6 class="stats-title">Βασικά Κατεύθυνσης: </h6>
+                <a class="stats-info">{{this.specializationCourses}} / 4
+                  <i *ngIf="this.specializationCourses >= 4" class="fa fa-check-circle" style="color: #5cb85c"></i></a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4">
+                <h6 class="stats-title">Project: </h6>
+                <a class="stats-info">{{this.project}} / 1
+                  <i *ngIf="this.project >= 1" class="fa fa-check-circle" style="color: #5cb85c"></i></a>
+              </div>
+              <div class="col-md-4">
+                <h6 class="stats-title">Γενικής Παιδείας: </h6>
+                <a class="stats-info">{{this.generalCourses}} / 3
+                  <i *ngIf="this.generalCourses >= 3" class="fa fa-check-circle" style="color: #5cb85c"></i></a>
+              </div>
+              <div class="col-md-4">
+                <h6 class="stats-title">Πτυχιακή Εργασία/Πρακτική Άσκηση: </h6>
+                <a class="stats-info">{{this.grad_project + this.practice}} / 2
+                  <i *ngIf="this.grad_project+this.practice >= 2" class="fa fa-check-circle" style="color: #5cb85c"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <h5><u>Ειδικεύσεις</u></h5>
+            <div class="row">
+              <div class="col-md-6">
+                <a class="stats-title">Ε1: </a>
+                <a class="stats-info">{{this.specialization1 + this.m_specialization1}} / 6 <i
+                  style="color: blue; cursor: pointer"
+                  class="fa fa-info-circle" data-toggle="modal"
+                  data-target="#specialization1"></i></a>
+              </div>
+              <div class="col-md-6">
+                <a class="stats-title">Ε4: </a>
+                <a class="stats-info">{{this.specialization4 + this.m_specialization4}} / 6 <i
+                  style="color: blue; cursor: pointer"
+                  class="fa fa-info-circle" data-toggle="modal"
+                  data-target="#specialization4"></i></a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <a class="stats-title">Ε2: </a>
+                <a class="stats-info">{{this.specialization2 + this.m_specialization2}}  / 6 <i
+                  style="color: blue; cursor: pointer"
+                  class="fa fa-info-circle" data-toggle="modal"
+                  data-target="#specialization2"></i></a>
+              </div>
+              <div class="col-md-6">
+                <a class="stats-title">Ε5: </a>
+                <a class="stats-info">{{this.specialization5 + this.m_specialization5}} / 6 <i
+                  style="color: blue; cursor: pointer"
+                  class="fa fa-info-circle" data-toggle="modal"
+                  data-target="#specialization5"></i></a>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                <a class="stats-title">Ε3: </a>
+                <a class="stats-info">{{this.specialization3 + this.m_specialization3}} / 6 <i
+                  style="color: blue; cursor: pointer"
+                  class="fa fa-info-circle" data-toggle="modal"
+                  data-target="#specialization3"></i></a>
+              </div>
+              <div class="col-md-6">
+                <a class="stats-title">Ε6: </a>
+                <a class="stats-info">{{this.specialization6 + this.m_specialization6}} / 6 <i
+                  style="color: blue; cursor: pointer"
+                  class="fa fa-info-circle" data-toggle="modal"
+                  data-target="#specialization6"></i></a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!--<div class="credits">-->
+        <!--<p>Ο ΜΙΜΗΣ, Ο ΣΩΤΗΡΗΣ ΚΑΙ Ο ΛΑΖΑΡΟΣ</p><br>-->
+        <!--<p>ΣΟΥ ΕΥΧΟΝΤΑΙ</p><br>-->
+        <!--<p>ΚΑΛΗ ΣΤΑΔΙΟΔΡΟΜΙΑ</p>-->
+        <!--</div>-->
+        <!--<div class="pyro">-->
+        <!--<div class="before"></div>-->
+        <!--<div class="after"></div>-->
+        <!--</div>-->
+
+      </div>
+      <div class="col-md-12 years">
+        <div id="accordion" role="tablist">
+
+          <div class="card" *ngFor="let year of this.years; let i = index">
+            <div class="card-header" role="tab" id="heading_{{year}}" *ngIf="this.advisor.active_year == year"
+                 style="background: #8ba2dd">
+              <h5 class="mb-0">
+                <a class="collapsed" data-toggle="collapse" attr.href="#collapse_{{year}}" aria-expanded="false"
+                   attr.aria-controls="collapse_{{year}}" style="color: white"><i class="fa fa-arrow-right"></i>
+                  {{year}}ο Έτος
+                </a>
+              </h5>
+            </div>
+            <div class="card-header" role="tab" *ngIf="this.advisor.active_year != year">
+              <h5 class="mb-0">
+                <a class="collapsed" data-toggle="collapse" attr.href="#collapse_{{year}}" aria-expanded="false"
+                   attr.aria-controls="collapse_{{year}}">
+                  {{year}}ο Έτος
+                </a>
+              </h5>
+            </div>
+            <div id="collapse_{{year}}" class="collapse" role="tabpanel" attr.aria-labelledby="heading_{{year}}">
+              <div class="card-body" style="background-color: rgba(230,237,245,0.64)">
+                <div class="card" *ngFor="let examination of this.examinations; let j = index">
+                  <div class="card-header" role="tab" id="heading_{{year}}_{{examination}}"
+                       *ngIf="this.advisor.active_year == year && this.advisor.active_examination == examination"
+                       style="background: #8ba2dd">
+                    <h5 class="mb-0">
+                      <a *ngIf="examination == 0" class="collapsed" data-toggle="collapse"
+                         attr.href="#collapse_{{year}}_{{examination}}"
+                         aria-expanded="false"
+                         attr.aria-controls="collapse_{{year}}_{{examination}}" style="color: white"><i
+                        class="fa fa-arrow-right"></i>
+                        Εξεταστική Χειμερινού
+                      </a>
+                      <a *ngIf="examination == 1" class="collapsed" data-toggle="collapse"
+                         attr.href="#collapse_{{year}}_{{examination}}"
+                         aria-expanded="false"
+                         attr.aria-controls="collapse_{{year}}_{{examination}}" style="color: white"><i
+                        class="fa fa-arrow-right"></i>
+                        Εξεταστική Εαρινού
+                      </a>
+                      <a *ngIf="examination == 2" class="collapsed" data-toggle="collapse"
+                         attr.href="#collapse_{{year}}_{{examination}}"
+                         aria-expanded="false"
+                         attr.aria-controls="collapse_{{year}}_{{examination}}" style="color: white"><i
+                        class="fa fa-arrow-right"></i>
+                        Επαναληπτική εξεταστική
+                      </a>
+                    </h5>
+                  </div>
+                  <div class="card-header" role="tab"
+                       *ngIf="this.advisor.active_year != year || this.advisor.active_examination != examination">
+                    <h5 class="mb-0">
+                      <a *ngIf="examination == 0" class="collapsed" data-toggle="collapse"
+                         attr.href="#collapse_{{year}}_{{examination}}"
+                         aria-expanded="false"
+                         attr.aria-controls="collapse_{{year}}_{{examination}}">
+                        Εξεταστική Χειμερινού
+                      </a>
+                      <a *ngIf="examination == 1" class="collapsed" data-toggle="collapse"
+                         attr.href="#collapse_{{year}}_{{examination}}"
+                         aria-expanded="false"
+                         attr.aria-controls="collapse_{{year}}_{{examination}}">
+                        Εξεταστική Εαρινού
+                      </a>
+                      <a *ngIf="examination == 2" class="collapsed" data-toggle="collapse"
+                         attr.href="#collapse_{{year}}_{{examination}}"
+                         aria-expanded="false"
+                         attr.aria-controls="collapse_{{year}}_{{examination}}">
+                        Επαναληπτική εξεταστική
+                      </a>
+                    </h5>
+                  </div>
+                  <div id="collapse_{{year}}_{{examination}}" class="collapse" role="tabpanel"
+                       attr.aria-labelledby="heading_{{year}}_{{examination}}">
+                    <div class="card-body">
+                      <div class="span7">
+                        <div class="widget stacked widget-table action-table">
+
+
+                          <div class="declared">
+
+                            <table class="table" role="table">
+                              <thead role="rowgroup">
+
+                              <tr role="row">
+                                <th role="columnheader">Μάθημα</th>
+                                <th role="columnheader">
+                                  Βαθμός
+                                </th>
+                                <th role="columnheader"
+                                    *ngIf="(this.advisor.active_year == year && this.advisor.active_examination == examination) || this.edit[((year-1)*3) + examination] == true">
+                                  Υποβολή Περασμένου
+                                </th>
+                                <th role="columnheader"
+                                    *ngIf="this.advisor.active_year < year || (this.advisor.active_year == year && this.advisor.active_examination <= examination)">
+                                  Βαθμός Στόχος (Προαιρετικό)
+                                </th>
+
+                              </tr>
+
+                              </thead>
+
+                              <tbody
+                                *ngIf="(this.advisor.active_year < year || (this.advisor.active_year == year && this.advisor.active_examination <= examination)) || this.edit[((year-1)*3) + examination] == true">
+                              <tr id="courses{{course.grade}}" *ngFor="let course of declared;  let i = index">
+
+                                <td class="name"
+                                    *ngIf="course.year == year && course.examination == examination && course.available == true">
+                                  <a style="color: red;" title="Λείπει προαπαιτούμενο">*{{course.course.name}}</a></td>
+
+                                <td class="name"
+                                    *ngIf="course.year == year && course.examination == examination && course.available == false">{{course.course.name}}</td>
+                                <td class="other" *ngIf="course.year == year && course.examination == examination">
+                                  <input
+                                    *ngIf="course.year == year && course.examination == examination && (this.advisor.active_year > year || (this.advisor.active_year == year && this.advisor.active_examination >= examination))"
+                                    type="number" step="0.5" style="width: 50px;text-align: center"
+                                    [(ngModel)]="course.grade"
+                                    [disabled]="(this.edit[((year-1)*3) + examination] == false && !(this.advisor.active_year == year && this.advisor.active_examination == examination)) || this.course.available == true  ">
+                                </td>
+                                <td class="other"
+                                    *ngIf="course.year == year && course.examination == examination && ((this.advisor.active_year == year && this.advisor.active_examination == examination) || this.edit[((year-1)*3) + examination] == true)">
+                                  <button type="button" class="btn btn-primary"
+                                          [disabled]="checkGrade(course.grade) || this.course.available == true || this.declaredGrades[i] == course.grade"
+                                          (click)="addDeclaredGrade(course.course,examination, course.grade, year)"><i
+                                    class="fa fa-check"></i><span class="button-title"> Υποβολή</span>
+                                  </button>
+                                </td>
+
+                                <td class="other"
+                                    *ngIf="course.year == year && course.examination == examination && (this.advisor.active_year < year || (this.advisor.active_year == year && this.advisor.active_examination <= examination))">
+                                  <input
+                                    type="number" step="0.5" style="width: 50px;text-align: center"
+                                    [(ngModel)]="course.gradegoal" [disabled]="this.course.available == true">
+                                  <button
+                                    *ngIf="this.advisor.active_year < year || (this.advisor.active_year == year && this.advisor.active_examination <= examination)"
+                                    type="button" class="gradegoal" [disabled]="checkGradeGoal(course.gradegoal)"
+                                    (click)="createGradeGoal(course.course, course.gradegoal)"
+                                    title="Υπολογισμός Μέσου Όρου Στόχου"><i class="fa fa-calculator"></i>
+                                    <span class="button-title"> Υπολογισμός</span>
+                                  </button>
+                                </td>
+                                <td class="other"
+                                    *ngIf="course.year == year && course.examination == examination && ((this.advisor.active_year < year ||( this.advisor.active_year == year  && this.advisor.active_examination <= examination)) || this.edit[((year-1)*3) + examination] == true)">
+                                  <button type="button" class="close" aria-label="Close"
+                                          data-toggle="modal" data-target="#deleteDeclared"
+                                          (click)="selectCourse(course.course)">
+                                    <span aria-hidden="true" title="Διαγραφή">&times; </span>
+                                  </button>
+                                </td>
+
+                              </tr>
+
+                              </tbody>
+
+                              <tbody>
+                              <tr id="courses{{passedCourse.grade}}"
+                                  *ngFor="let passedCourse of passed;  let i = index">
+
+                                <td class="name"
+                                    *ngIf="passedCourse.year == year && passedCourse.examination == examination && passedCourse.available == true">
+                                  <a style="color: red;" title="Λείπει προαπαιτούμενο">*{{passedCourse.course.name}}</a>
+                                </td>
+
+                                <td class="name"
+                                    *ngIf="passedCourse.year == year && passedCourse.examination == examination && passedCourse.available == false">{{passedCourse.course.name}}</td>
+
+                                <td class="other"
+                                    *ngIf="passedCourse.year == year && passedCourse.examination == examination">
+                                  <input type="text" style="width: 50px;text-align: center"
+                                         [(ngModel)]="passedCourse.grade"
+                                         [disabled]="!((passedCourse.year == year && passedCourse.examination == examination && this.edit[((year-1)*3) + examination] == true) && (this.advisor.active_year > year || (this.advisor.active_year ==  year && this.advisor.active_examination > examination))) || passedCourse.available == true">
+                                </td>
+                                <td class="other"
+                                    *ngIf="passedCourse.year == year && passedCourse.examination == examination && this.edit[((year-1)*3) + examination] == true && (this.advisor.active_year > year || (this.advisor.active_year ==  year && this.advisor.active_examination > examination))">
+                                  <button type="button" class="btn btn-primary"
+                                          [disabled]="checkGrade(passedCourse.grade) || passedCourse.available == true"
+                                          (click)="addPassedGrade(passedCourse.course,examination, passedCourse.grade, year)">
+                                    <i
+                                      class="fa fa-check"></i><span class="button-title">
+                                    Υποβολή </span>
+                                  </button>
+                                </td>
+
+
+                                <td class="other"
+                                    *ngIf="passedCourse.year == year && passedCourse.examination == examination && this.edit[((year-1)*3) + examination] == true && (this.advisor.active_year > year || (this.advisor.active_year ==  year && this.advisor.active_examination > examination))">
+                                  <button type="button" class="close" aria-label="Close"
+                                          data-toggle="modal" data-target="#deletePassed"
+                                          (click)="selectCourse(passedCourse.course)">
+                                    <span aria-hidden="true" title="Διαγραφή">&times; </span>
+                                  </button>
+                                </td>
+
+                              </tr>
+
+                              </tbody>
+                            </table>
+
+                          </div> <!-- /widget-content -->
+
+                        </div> <!-- /widget -->
+                      </div>
+                    </div>
+
+                    <button
+                      *ngIf="(this.advisor.active_year == year && this.advisor.active_examination == examination) || this.edit[((year-1)*3) + examination] == true"
+                      type="button" class="btn btn-secondary pull-right" title="Τέλος Εξαμήνου"
+                      (click)="endExamination(year, examination)"><i class="fa fa-check"
+                                                                     aria-hidden="true"></i>
+                      <span class="button-title"> Ολοκλήρωση Εξεταστικής</span>
+                    </button>
+                    <button
+                      *ngIf="(this.advisor.active_year > year || (this.advisor.active_year == year && this.advisor.active_examination > examination)) && this.edit[((year-1)*3) + examination] == false"
+                      type="button" class="btn btn-light pull-left"
+                      (click)="changeEdit(year, examination);"><i
+                      class="fa fa-edit"
+                      aria-hidden="true"></i>
+                      <span class="button-title"> Επεξεργασία Εξεταστικής</span>
+                    </button>
+
+                    <button
+                      *ngIf="(this.advisor.active_year < year) || (this.advisor.active_year == year && this.advisor.active_examination <= examination) || this.edit[((year-1)*3) + examination] == true"
+                      type="button" class="btn btn-success pull-left" (click)="getAvailable(year, examination)"
+                      data-toggle="modal" attr.data-target="#createCourse_{{year}}_{{examination}}">
+                      <i class="fa fa-plus-circle" aria-hidden="true"></i> <span
+                      class="button-title"> Προσθήκη Μαθήματος</span>
+                    </button>
+
+
+                    <!--The Modal-->
+                    <div class="modal fade" id="createCourse_{{year}}_{{examination}}" role="dialog" tabindex="-1"
+                         aria-hidden="true">
+                      <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+
+                          <!-- Modal Header -->
+                          <div class="modal-header">
+                            <h4 class="modal-title">Διαθέσιμα Μαθήματα ({{this.available.length}})</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                          </div>
+
+                          <!-- Modal body -->
+                          <div class="modal-body">
+                            <div class="col-md-12">
+                              <form>
+                                <div class="form-check" *ngFor="let avCourse of this.available; let i=index">
+                                  <label>
+                                    <input type="checkbox" name="check" [(ngModel)]="checked[i]"> <span
+                                    class="label-text">{{avCourse.name}}</span>
+                                  </label>
+                                </div>
+                              </form>
+
+                            </div>
+                          </div>
+
+                          <!-- Modal footer -->
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                    (click)="declare(year, examination)" [disabled]="!this.available.length"><i
+                              class="fa fa-check"></i><span class="button-title"> Υποβολή</span>
+                            </button>
+                          </div>
+
+                        </div>
+                      </div>
+                    </div>
+                    <br><br>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <br>
+
+        <button type="button" class="btn btn-success" style="margin-right:16px" (click)="addYear()"><i class="fa fa-plus-circle"
+                                                                             aria-hidden="true"></i> <span
+          class="button-title">
+        Προσθήκη Έτους </span>
+        </button>
+
+        <button *ngIf="this.years.length > 4" id="remove" type="button" class="btn btn-danger" data-toggle="modal"
+                data-target="#deleteYear">
+          <i class="fa fa-minus-circle" aria-hidden="true"></i>
+          <span class="button-title"> Αφαίρεση Έτους </span>
+        </button>
+
+        <button type="button" class="btn btn-danger pull-right" data-toggle="modal" data-target="#deleteAdvisor">
+          <i class="fa fa-minus-circle" aria-hidden="true"></i>
+          <span class="button-title">Διαγραφή Προγράμματος</span>
+        </button>
+
+        <button type="button" class="btn btn-primary pull-right" style="margin-right:16px" (click)="createAdvisor()">
+          <i class="fa fa-pencil" aria-hidden="true"></i>
+          <span class="button-title">
+         Νέο Πρόγραμμα </span>
+        </button>
+
+        <!--ALERTS-->
+
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 1"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Δήλωση</h4>
+          <p *ngIf="this.declaredNumber == 1">Δηλώθηκε {{this.declaredNumber}} μάθημα.</p>
+          <p *ngIf="this.declaredNumber > 1">Δηλώθηκαν {{this.declaredNumber}} μαθήματα.</p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 2"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Επιτυχία</h4>
+          <p>Ο μέσος όρος άλλαξε!</p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" *ngIf="this.alert == 3"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Διαγραφή</h4>
+          <p>Διαγράφηκε 1 μάθημα.</p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 4"
+             style="position: fixed; bottom: 0;">
+          <p>Το έτος προστέθηκε με επιτυχία.</p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 5"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Επιτυχία</h4>
+          <p>Η εξεταστική ολοκληρώθηκε.</p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 6"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Επιτυχία</h4>
+          <p>Δημιουργήθηκε νέο πρόγραμμα.</p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 7"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Επιτυχία</h4>
+          <p>Ο μέσος όρος στόχος άλλαξε!</p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 8"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Επιτυχία</h4>
+          <p>Το τρέχον πρόγραμμα άλλαξε. </p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 9"
+             style="position: fixed; bottom: 0;">
+          <h4 class="alert-heading">Επιτυχία</h4>
+          <p>Το πρόγραμμα διαγράφηκε. </p>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
+
+<!--NAVIGATION MENU END-->
+
+</body>
+<!--The Modal-->
+<div class="modal fade" id="deleteDeclared">
+  <div class="modal-dialog modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon-box">
+          <i class="material-icons">&times;</i>
+        </div>
+        <h4 class="modal-title">Διαγραφή</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Το μάθημα <b><i>{{this.selectedCourse.name}}</i></b> πρόκειται να διαγραφει!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" data-dismiss="modal">Ακύρωση</button>
+        <button type="button" class="btn btn-danger" (click)="deleteDeclaredCourse(this.selectedCourse)"
+                data-dismiss="modal">Διαγραφή
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="deletePassed">
+  <div class="modal-dialog modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon-box">
+          <i class="material-icons">&times;</i>
+        </div>
+        <h4 class="modal-title">Διαγραφή</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Το μάθημα <b><i>{{this.selectedCourse.name}}</i></b> πρόκειται να διαγραφει!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" data-dismiss="modal">Ακύρωση</button>
+        <button type="button" class="btn btn-danger" (click)="deletePassedCourse(this.selectedCourse)"
+                data-dismiss="modal">Διαγραφή
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="deleteYear">
+  <div class="modal-dialog modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon-box">
+          <i class="material-icons">&times;</i>
+        </div>
+        <h4 class="modal-title">Αφαίρεση Έτους</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Το τελευταίο έτος πρόκειται να διαγραφεί, καθώς και όλα τα μαθήματα που είναι δηλωμένα και περασμένα σε
+          αυτό!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" data-dismiss="modal">Ακύρωση</button>
+        <button type="button" class="btn btn-danger" (click)="removeYear()" data-dismiss="modal">Διαγραφή</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="deleteAdvisor">
+  <div class="modal-dialog modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon-box">
+          <i class="material-icons">&times;</i>
+        </div>
+        <h4 class="modal-title">Διαγραφή Προγράμματος</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Το τρέχων πρόγραμμα πρόκειται να διαγραφεί. Μετά την διαγραφή δεν είναι δυνατή η ανάκτησή του. </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" data-dismiss="modal">Ακύρωση</button>
+        <button type="button" class="btn btn-danger" (click)="deleteAdvisor()" data-dismiss="modal">Διαγραφή</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="specialization1" role="dialog" tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Ειδίκευση 1 - Θεμελιώσεις Πληροφορικής
+          ({{this.specialization1 + this.m_specialization1}} / 6) </h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="col-md-12">
+          <div class="row">
+
+            <h5>
+              <b><u>Υποχρεωτικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 1 && spec.type == 'Υποχρεωτικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+          <div class="row" style="padding-top: 10px;">
+
+            <h5>
+              <b><u>Βασικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 1 && spec.type == 'Βασικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-basic" data-dismiss="modal">
+          Κλείσιμο
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!--The Modal-->
+<div class="modal fade" id="specialization2" role="dialog" tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Ειδίκευση 2 - Διαχείριση Δεδομένων και Γνώσης
+          ({{this.specialization2 + this.m_specialization2}} / 6) </h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="col-md-12">
+          <div class="row">
+
+            <h5>
+              <b><u>Υποχρεωτικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 2 && spec.type == 'Υποχρεωτικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+          <div class="row" style="padding-top: 10px;">
+
+            <h5>
+              <b><u>Βασικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 2 && spec.type == 'Βασικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-basic" data-dismiss="modal">
+          Κλείσιμο
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="specialization3" role="dialog" tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Ειδίκευση 3 - Λογισμικό ({{this.specialization3 + this.m_specialization3}} / 6) </h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="col-md-12">
+          <div class="row">
+
+            <h5>
+              <b><u>Υποχρεωτικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 3 && spec.type == 'Υποχρεωτικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+          <div class="row" style="padding-top: 10px;">
+
+            <h5>
+              <b><u>Βασικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 3 && spec.type == 'Βασικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-basic" data-dismiss="modal">
+          Κλείσιμο
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="specialization4" role="dialog" tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Ειδίκευση 4 - Υλικό και Αρχιτεκτονική ({{this.specialization4 + this.m_specialization4}}
+          / 6) </h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="col-md-12">
+          <div class="row">
+
+            <h5>
+              <b><u>Υποχρεωτικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 4 && spec.type == 'Υποχρεωτικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+          <div class="row" style="padding-top: 10px;">
+
+            <h5>
+              <b><u>Βασικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 4 && spec.type == 'Βασικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-basic" data-dismiss="modal">
+          Κλείσιμο
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="specialization5" role="dialog" tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Ειδίκευση 5 - Επικοινωνίες και Δικτύωση
+          ({{this.specialization5 + this.m_specialization5}} / 6) </h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="col-md-12">
+          <div class="row">
+
+            <h5>
+              <b><u>Υποχρεωτικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 5 && spec.type == 'Υποχρεωτικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+          <div class="row" style="padding-top: 10px;">
+
+            <h5>
+              <b><u>Βασικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 5 && spec.type == 'Βασικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-basic" data-dismiss="modal">
+          Κλείσιμο
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!--The Modal-->
+<div class="modal fade" id="specialization6" role="dialog" tabindex="-1"
+     aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h4 class="modal-title">Ειδίκευση 6 - Επεξεργασία Σήματος και Πληροφορίας
+          ({{this.specialization6 + this.m_specialization6}} / 6) </h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="col-md-12">
+          <div class="row">
+
+            <h5>
+              <b><u>Υποχρεωτικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 6 && spec.type == 'Υποχρεωτικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+          <div class="row" style="padding-top: 10px;">
+
+            <h5>
+              <b><u>Βασικά</u></b>
+            </h5>
+          </div>
+          <div *ngFor="let spec of this.specializations">
+            <div class="row" *ngIf="spec.specialization == 6 && spec.type == 'Βασικό'">
+              <a *ngIf="existPassed(spec.course)" style="color: green;">- {{spec.course.name}}</a>
+              <a *ngIf="!existPassed(spec.course)">- {{spec.course.name}}</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-basic" data-dismiss="modal">
+          Κλείσιμο
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+</html>

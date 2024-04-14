@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Courses</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+</head>
+<body>
+
+
+<!--NAVIGATION MENU-->
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <a routerLink="/advisor" class="navbar-brand" href="#"><img src="../../assets/img/logo_white_background.png"  height="40"></a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+          aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown"
+           aria-haspopup="true" aria-expanded="false">
+          Τα Προγράμματά Μου
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+          <button type="button" style="width:100%" class="btn btn-primary"  (click)="createAdvisor()">
+            <i class="fa fa-pencil" aria-hidden="true"></i>
+            <span class="button-title">Νέο Πρόγραμμα </span>
+          </button>
+          <button type="button" class="btn btn-danger pull-right" data-toggle="modal" data-target="#deleteAdvisor">
+            <i class="fa fa-minus-circle" aria-hidden="true"></i>
+            <span class="button-title">Διαγραφή Προγράμματος</span>
+          </button>
+          <hr>
+          <hr>
+          <div *ngFor="let advisor of this.advisors; let i=index">
+            <a *ngIf="advisor.active == true" class="dropdown-item active" routerLink="/advisor">Πρόγραμμα {{i + 1}}</a>
+            <a *ngIf="advisor.active == false" (click)="changeActiveAdvisor(advisor)"
+               class="dropdown-item">Πρόγραμμα {{i + 1}}</a>
+          </div>
+
+        </div>
+      </li>
+      <li class="nav-item nav-link active" routerLink="/courses">Προσφερόμενα Μαθήματα</li>
+      <li class="nav-item nav-link" routerLink="/passed">Περασμένα Μαθήματα</li>
+      <li class="nav-item nav-link" routerLink="/settings">Ρυθμίσεις</li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item nav-link" routerLink="/profile"><span class="fa fa-user-circle"></span> {{this.user.name}} {{this.user.surname}}</li>
+      <li class="nav-item nav-link" routerLink="/" (click)="logout()"><span class="fa fa-sign-out"></span> Αποσύνδεση</li>
+    </ul>
+  </div>
+</nav>
+
+<!--NAVIGATION MENU END-->
+<div class="mydiv">
+  <div class="container">
+    <div class="row" style="margin-top: 50px;">
+
+      <div class="col-md-12 semester" *ngFor="let i of [1,2,3,4,5,6,7,8]">
+        <hr>
+        <h3>{{i}}ο Εξάμηνο</h3>
+        <hr>
+        <div class="row">
+          <div *ngFor="let course of this.courses">
+            <div *ngIf="course.semester === i">
+              <div class="col-sm-8 col-md-12 col-md-4">
+                <div class="card">
+                  <div class="card-body">
+                    <a class="course" (click)="selectCourse(course)" data-toggle="modal"
+                      data-target="#course"> {{course.name}}</a>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            <div class="modal fade" id="course">
+              <div class="modal-dialog">
+                <div class="modal-content">
+
+                  <!-- Modal Header -->
+                  <div class="modal-header">
+                    <h4 class="modal-title">{{this.selectedCourse.name}} ({{this.selectedCourse.code}})</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  </div>
+
+                  <!--modal body-->
+                  <td class="modal-body">
+                    <ul>
+                    <li><b>ECTS:</b> {{this.selectedCourse.ects}}</li>
+                    <li><b>Εξάμηνο:</b> {{this.selectedCourse.semester}}</li>
+                    <li><b>Τύπος Μαθήματος:</b> {{this.selectedCourse.type}}</li>
+                    <li *ngIf="this.selectedCourse.direction == ''"><b>Κατεύθυνση:</b> -</li>
+                    <li *ngIf="this.selectedCourse.direction != '' && this.selectedCourse.direction != 'ΑΒ'"><b>Κατεύθυνση:</b> {{this.selectedCourse.direction}}</li>
+                    <li *ngIf="this.selectedCourse.direction != '' && this.selectedCourse.direction == 'ΑΒ'"><b>Κατεύθυνση:</b> Α/Β</li>
+
+                    <li><table class="table table-bordered specialization">
+                      <thead>
+                      <tr>
+                        <th>Κ</th>
+                        <th>Ε1</th>
+                        <th>Ε2</th>
+                        <th>Ε3</th>
+                        <th>Ε4</th>
+                        <th>Ε5</th>
+                        <th>Ε6</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td *ngIf="this.selectedCourse.direction != ''" title="{{this.selectedCourse.direction}}">{{this.selectedCourse.direction}}</td>
+                        <td *ngIf="this.selectedCourse.direction == ''" title="Τίποτα">-</td>
+
+                        <td *ngFor="let i of [0,1,2,3,4,5]">
+                          <div *ngIf="this.selectedCourseSpec[i] == 'Υποχρεωτικό'; else basic" title="Υποχρεωτικό">
+                            Υ
+                          </div>
+                          <ng-template #basic>
+                            <div *ngIf="this.selectedCourseSpec[i] == 'Βασικό'; else choice" title="Βασικό">
+                              Β
+                            </div>
+                          </ng-template>
+                          <ng-template #choice>
+                            <div *ngIf="this.selectedCourseSpec[i] == 'Επιλογής'; else nothing" title="Επιλογής">
+                              Ε
+                            </div>
+                          </ng-template>
+
+                            <ng-template #nothing>
+                              <div title="Τίποτα">
+                                -
+                              </div>
+                            </ng-template>
+                        </td>
+
+                      </tr>
+                      </tbody>
+                    </table>
+                    </li>
+
+
+                      <li *ngIf="this.selectedCourse.theory == null"><b>Ώρες Θεωρίας:</b> 0</li>
+                      <li *ngIf="this.selectedCourse.theory != null"><b>Ώρες Θεωρίας:</b> {{this.selectedCourse.theory}}</li>
+                      <li *ngIf="this.selectedCourse.extra == null"><b>Ώρες Φροντιστηρίου:</b> 0</li>
+                      <li *ngIf="this.selectedCourse.extra != null"><b>Ώρες Φροντιστηρίου:</b> {{this.selectedCourse.extra}}</li>
+                      <li *ngIf="this.selectedCourse.lab == null"><b>Ώρες Εργαστηρίου:</b> 0</li>
+                      <li *ngIf="this.selectedCourse.lab != null"><b>Ώρες Εργαστηρίου:</b> {{this.selectedCourse.lab}}</li>
+
+                      <li><h5><b><u>Προαπαιτούμενα</u></b></h5></li>
+                      <div *ngFor="let prerequisite of this.selectedCourse.prerequisite; let i = index">
+                        <div *ngIf="this.selectedCourse.prerequisite.length == 1; else many_prerequisites">
+                          <li>- {{this.selectedCourse.prerequisite[i].name}}</li>
+                        </div>
+                        <ng-template #many_prerequisites>
+                          <li>- {{this.selectedCourse.prerequisite[i].name}}</li>
+                        </ng-template>
+                      </div>
+                      <li><h5><b><u>Συνιστώμενα Προαπαιτούμενα</u></b></h5></li>
+                      <div *ngFor="let recommended of this.selectedCourse.recommended; let i = index">
+                        <div *ngIf="this.selectedCourse.recommended.length == 1; else many_recommended">
+                          <li>- {{this.selectedCourse.recommended[i].name}}</li>
+                        </div>
+                        <ng-template #many_recommended>
+                          <li>- {{this.selectedCourse.recommended[i].name}}</li>
+                        </ng-template>
+                      </div>
+                      <li><h5><b><u>Καθηγητές/τριες</u></b></h5></li>
+                      <div *ngFor="let professor of this.selectedCourse.professor; let i = index">
+                        <div *ngIf="this.selectedCourse.professor.length == 1; else many_professors">
+                          <li><b>Καθηγητής/τρια:</b> {{this.selectedCourse.professor[i]}}</li>
+                        </div>
+                        <ng-template #many_professors>
+                          <li><b>Καθηγητής/τρια {{i + 1}}:</b> {{this.selectedCourse.professor[i]}}</li>
+                        </ng-template>
+                      </div>
+                    </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="alert alert-success alert-dismissible fade show" role="alert" *ngIf="this.alert == 1"
+     style="position: fixed; bottom: 0;">
+  <h4 class="alert-heading">Επιτυχία</h4>
+  <p>Το τρέχον πρόγραμμα άλλαξε. </p>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+</body>
+<!--The Modal-->
+<div class="modal fade" id="deleteAdvisor">
+  <div class="modal-dialog modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="icon-box">
+          <i class="material-icons">&times;</i>
+        </div>
+        <h4 class="modal-title">Διαγραφή Προγράμματος</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Το τρέχων πρόγραμμα πρόκειται να διαγραφεί. Μετά την διαγραφή δεν είναι δυνατή η ανάκτησή του. </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-info" data-dismiss="modal">Ακύρωση</button>
+        <button type="button" class="btn btn-danger" (click)="deleteAdvisor()" data-dismiss="modal">Διαγραφή</button>
+      </div>
+    </div>
+  </div>
+</div>
+</html>
